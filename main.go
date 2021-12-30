@@ -16,5 +16,15 @@ func main() {
 	}
 
 	client := api.Client(PAT)
-	fmt.Println(client)
+
+	username, err := api.Username(client)
+	if err != nil {
+		lumber.Fatal(err, "Failed to get user's username")
+	}
+
+	repos, err := api.Repos(username, client)
+	if err != nil {
+		lumber.Fatal(err, "Failed to load repos")
+	}
+	fmt.Println(repos)
 }
