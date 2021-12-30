@@ -9,33 +9,35 @@ import (
 )
 
 type Repo struct {
-	Name     string
-	CloneURL string
+	URL           string
+	Name          string
+	NameWithOwner string
+	IsMirror      bool
+	IsDisabled    bool
+	IsArchived    bool
+	IsEmpty       bool
+	IsFork        bool
 }
 
-func Repos(username string, client *githubv4.Client) ([]Repo, error) {
+func Repos(client *githubv4.Client) ([]Repo, error) {
 	fmt.Println()
 	lumber.Info("Fetching repos")
 
 	repos := []Repo{}
 	vars := map[string]interface{}{
 		"cursor": (*githubv4.String)(nil),
-		"login":  githubv4.String(username),
 	}
 	for {
 		query := struct {
-			User struct {
+			Viewer struct {
 				Repositories struct {
-					Nodes []struct {
-						URL  string
-						Name string
-					}
+					Nodes    []Repo
 					PageInfo struct {
 						EndCursor   string
 						HasNextPage bool
 					}
-				} `graphql:"repositories(isFork: false, isLocked: false, first: 100, after: $cursor)"`
-			} `graphql:"user(login: $login)"`
+				} `graphql:"repositories(affiliations: OWNER, first: 100, after: $cursor)"`
+			}
 		}{}
 
 		err := client.Query(context.Background(), &query, vars)
@@ -43,13 +45,11 @@ func Repos(username string, client *githubv4.Client) ([]Repo, error) {
 			return []Repo{}, err
 		}
 
-		for _, repo := range query.User.Repositories.Nodes {
-			repos = append(repos, Repo{Name: repo.Name, CloneURL: repo.URL + ".git"})
-		}
-		if !query.User.Repositories.PageInfo.HasNextPage {
+		repos = append(repos, query.Viewer.Repositories.Nodes...)
+		if !query.Viewer.Repositories.PageInfo.HasNextPage {
 			break
 		}
-		vars["cursor"] = githubv4.String(query.User.Repositories.PageInfo.EndCursor)
+		vars["cursor"] = githubv4.String(query.Viewer.Repositories.PageInfo.EndCursor)
 	}
 	lumber.Success("Loaded", len(repos), "repos")
 	return repos, nil
