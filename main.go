@@ -65,4 +65,14 @@ func main() {
 
 	fmt.Println()
 	lumber.Success("Updated", updates, "repositories from", os.Args[1], "to", os.Args[2])
+
+	err = os.RemoveAll(tmpDir)
+	if err != nil {
+		lumber.Fatal(
+			err,
+			"Failed to remove temporary directory. Please remove",
+			tmpDir,
+			"manually.",
+		)
+	}
 }
