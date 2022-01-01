@@ -34,15 +34,19 @@ func main() {
 		lumber.Fatal(err, "Failed to change directory to temporary directory for cloning")
 	}
 
-	for _, repo := range repos {
+	for i, repo := range repos {
 		if repo.IsArchived || repo.IsDisabled || repo.IsEmpty || repo.IsFork || repo.IsMirror {
 			continue
 		}
-		// loc := filepath.Join(tmpDir, repo.Name)
 		err = update.Clone(repo)
 		if err != nil {
-			lumber.Fatal(err, "Failed to clone", repo.NameWithOwner)
+			lumber.Fatal(err, "Failed to clone for", repo.NameWithOwner)
 		}
-		break
+		lumber.Success(fmt.Sprintf("(%v/%v) |", i+1, len(repos)), "Cloned", repo.NameWithOwner)
+
+		err = update.Copyright(repo)
+		if err != nil {
+			lumber.Fatal(err, "Failed to update copyright for", repo.NameWithOwner)
+		}
 	}
 }
