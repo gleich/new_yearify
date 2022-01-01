@@ -1,0 +1,33 @@
+release:
+  github:
+    owner: gleich
+    name: new_yearify
+  prerelease: auto
+
+before:
+  hooks:
+    - go mod download
+
+builds:
+  - goos:
+      - darwin
+      - linux
+    goarch:
+      - amd64
+      - arm
+      - arm64
+    goarm:
+      - 6
+      - 7
+
+brews:
+  - tap:
+      owner: gleich
+      name: homebrew-tap
+    folder: Formula
+    homepage: 'https://github.com/gleich/new_yearify'
+    description: 'Update the copyright year in all of your GitHub repos '
+    commit_author:
+      name: gleich
+      email: git@mattglei.ch
+    install: bin.install "new_yearify"
