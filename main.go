@@ -14,7 +14,7 @@ import (
 func main() {
 	PAT := out.Ask("What is your PAT (personal access token)?")
 	if PAT == "" || !strings.HasPrefix(PAT, "ghp_") {
-		lumber.FatalMsg("Please enter a valid response")
+		lumber.FatalMsg("Please enter a valid personal access token")
 	}
 
 	client := api.Client(PAT)
@@ -23,7 +23,6 @@ func main() {
 	if err != nil {
 		lumber.Fatal(err, "Failed to load repos")
 	}
-	fmt.Println(repos)
 
 	tmpDir, err := update.CreateTmpDir()
 	if err != nil {
@@ -34,19 +33,36 @@ func main() {
 		lumber.Fatal(err, "Failed to change directory to temporary directory for cloning")
 	}
 
+	updates := 0
 	for i, repo := range repos {
 		if repo.IsArchived || repo.IsDisabled || repo.IsEmpty || repo.IsFork || repo.IsMirror {
 			continue
 		}
 		err = update.Clone(repo)
 		if err != nil {
-			lumber.Fatal(err, "Failed to clone for", repo.NameWithOwner)
+			lumber.Fatal(err, "Failed to clone", repo.NameWithOwner)
 		}
-		lumber.Success(fmt.Sprintf("(%v/%v) |", i+1, len(repos)), "Cloned", repo.NameWithOwner)
+		lumber.Success("Cloned", repo.NameWithOwner, fmt.Sprintf("(%v/%v)", i+1, len(repos)))
 
-		err = update.Copyright(repo)
+		updated, err := update.Copyright(repo)
 		if err != nil {
 			lumber.Fatal(err, "Failed to update copyright for", repo.NameWithOwner)
 		}
+
+		if updated {
+			updates++
+			err = update.Commit(repo)
+			if err != nil {
+				lumber.Fatal(err, "Failed to commit & push changes for", repo.NameWithOwner)
+			}
+		}
+
+		err = os.Chdir("..")
+		if err != nil {
+			lumber.Fatal(err, "Failed to change directory up out of the repository")
+		}
 	}
+
+	fmt.Println()
+	lumber.Success("Updated", updates, "repositories to", os.Args[2])
 }
