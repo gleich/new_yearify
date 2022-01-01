@@ -64,5 +64,5 @@ func main() {
 	}
 
 	fmt.Println()
-	lumber.Success("Updated", updates, "repositories to", os.Args[2])
+	lumber.Success("Updated", updates, "repositories from", os.Args[1], "to", os.Args[2])
 }

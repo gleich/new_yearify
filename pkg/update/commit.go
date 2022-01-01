@@ -20,6 +20,11 @@ func Commit(repo api.Repo) error {
 		return err
 	}
 
+	err = exec.Command("git", "push").Run()
+	if err != nil {
+		return err
+	}
+
 	lumber.Info("Updated", repo.NameWithOwner, "to new year")
 	return nil
 }
