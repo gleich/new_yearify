@@ -30,3 +30,13 @@ new_yearify 2021 2022
 ```
 
 This will update all copyright years from 2021 to 2022
+
+## Options
+
+### Cloning with SSH
+
+To clone with SSH instead of HTTPS please add the following flag to the end of the command like so:
+
+```bash
+new_yearify 2021 2022 --ssh
+```
